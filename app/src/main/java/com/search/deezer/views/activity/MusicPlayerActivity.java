@@ -13,14 +13,18 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.deezer.sdk.model.Track;
+import com.deezer.sdk.player.Player;
 import com.search.deezer.R;
 import com.search.deezer.adapters.TrackRecycleAdapter;
+import com.search.deezer.models.Constants;
 import com.search.deezer.models.Utilities;
 import com.search.deezer.models.data.DeezerApplication;
 import com.search.deezer.presenter.IMusicPlayerPresenter;
@@ -31,7 +35,7 @@ import java.io.IOException;
 import java.util.Random;
 
 import butterknife.BindView;
-
+import butterknife.ButterKnife;
 
 
 public class MusicPlayerActivity extends Activity implements IMusicPlayerView, MediaPlayer.OnCompletionListener, SeekBar.OnSeekBarChangeListener {
@@ -71,8 +75,9 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     String imageUrl;
     // Handler to update UI timer, progress bar etc,.
     private Handler mHandler = new Handler();
-    ;
-
+   @BindView(R.id.progressBar)
+    ProgressBar Loading;
+    private boolean playPause;
     private int seekForwardTime = 5000; // 5000 milliseconds
     private int seekBackwardTime = 5000; // 5000 milliseconds
     private int currentSongIndex = 0;
@@ -85,6 +90,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_player);
+        ButterKnife.bind(this);
         mTrack = getIntent().getParcelableExtra("mTrack");
         Log.e("Recived track is", mTrack.getTitle());
         mPlayerPresenter = new MusicPlayerPresenterImp(this);
@@ -92,6 +98,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     }
 
     public void initView() {
+        /*
         bPlay = (ImageButton) findViewById(R.id.bPlay);
         bForward = (ImageButton) findViewById(R.id.bForward);
         bBackward = (ImageButton) findViewById(R.id.bBackward);
@@ -101,10 +108,12 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
         bRepeat = (ImageButton) findViewById(R.id.bRepeat);
         bShuffle = (ImageButton) findViewById(R.id.bShuffle);
         songProgressBar = (SeekBar) findViewById(R.id.SongProgress);
-        songTitleLabel = (TextView) findViewById(R.id.SongTitle);
+       songTitleLabel = (TextView) findViewById(R.id.SongTitle);
         songCurrentDuration = (TextView) findViewById(R.id.currentDuration);
         songTotalDuration = (TextView) findViewById(R.id.totalDuration);
         albumArt = (ImageView) findViewById(R.id.albumArt);
+*/
+
         FadeIn = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.fadein);
         utils = new Utilities();
@@ -135,6 +144,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
             public void onClick(View arg0) {
                 //put in
                 // check for already playing
+                /*
                 if (mp.isPlaying()) {
                     if (mp != null) {
                         mp.pause();
@@ -152,7 +162,27 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
                         bPlay.setImageResource(R.drawable.img_bpause);
                     }
                 }
+*/
+                ///////////////\
+                Log.e("playPause",playPause +" dd");
+                if (!playPause) {
 
+                    bPlay.setImageResource(R.drawable.img_bpause);
+                    if (Constants.INITIAL_STAGE){
+                        Log.e("intial","called");
+                      mPlayerPresenter.playSong(mTrack);}
+                    else {
+                        Log.e("not intial","called");
+                        if (!mp.isPlaying())
+                            mp.start();
+                    }
+                    playPause = true;
+                } else {
+                    bPlay.setImageResource(R.drawable.img_bplay);
+                    if (mp.isPlaying())
+                        mp.pause();
+                    playPause = false;
+                }
             }
         });
         /**
@@ -295,9 +325,24 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     public void onCompletion(MediaPlayer mp) {
         Log.e("onCompletion", "onCompletion");
         // check for repeat on or off
+/*
+       // mPlayerPresenter.playSong(mTrack);
+        Constants.INITIAL_STAGE = true;
+        playPause=false;
+        bPlay.setImageResource(R.drawable.img_bplay);
+        mp.stop();
+        mp.reset();
+*/
+        if (mp != null) {
+            Constants.INITIAL_STAGE = true;
+            playPause=false;
+            bPlay.setImageResource(R.drawable.img_bplay);
+            mHandler.removeCallbacks(mUpdateTimeTask);
+            mp.stop();
 
-        mPlayerPresenter.playSong(mTrack);
-
+          //  mp.release();
+          //  mp = null;
+        }
 
     }
 
@@ -333,6 +378,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
     @Override
     public void UpdatePlayer(Track mTrack) {
+
 //setimage and title
         imageUrl = mTrack.getArtist().getPictureUrl();
         songTitleLabel.setText(mTrack.getTitle());
@@ -417,9 +463,26 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
         } catch (IOException e) {
             e.printStackTrace();
         }
+//mp3 will be started after completion of preparing...
+        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
 
-        mp.start();
+            @Override
+            public void onPrepared(MediaPlayer player) {
+                mp.start();
+            }
+
+        });
+      //  mp.start();
     }
+
+    @Override
+    public void showLoading(boolean show) {
+
+
+        Loading.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+
 
     @Override
     protected void onDestroy() {
@@ -427,9 +490,13 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
         if (mp != null) {
             mHandler.removeCallbacks(mUpdateTimeTask);
             mp.stop();
-            ;
+
             mp.release();
             mp = null;
         }
     }
+//    public void showLoading(boolean show) {
+//        Loading.setVisibility(show ? View.VISIBLE : View.GONE);
+//
+//    }
 }

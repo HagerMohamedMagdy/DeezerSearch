@@ -58,7 +58,16 @@
             android:scaleType="fitCenter"
             android:id="@+id/albumArt"/>"
     </LinearLayout>
-    <!-- Player Footer -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:indeterminate="true"
+        android:visibility="gone"
+
+        />
+
     <!-- Player Footer -->
     <LinearLayout
         android:id="@+id/player_footer_bg"

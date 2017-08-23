@@ -24,23 +24,26 @@
         android:textStyle="bold"
         android:layout_alignBaseline="@id/imageView"
         android:layout_margin="5dp"
-        android:gravity="center_vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:lines = "1"
+        android:ems  = "3"
+        android:gravity = "left"
          android:layout_toRightOf="@+id/imageView"/>
 
-    <TextView
-        android:id="@+id/artist"
-        android:text="John Doe,"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:gravity="center_vertical"
 
-        android:layout_below="@+id/name"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="?android:attr/textColorSecondary"/>
-
+        <TextView
+            android:id = "@+id/artist"
+            android:layout_width  = "wrap_content"
+            android:layout_height = "wrap_content"
+            android:layout_below="@+id/name"
+            android:text  = "John Doe"
+            android:lines = "1"
+            android:ems  = "3"
+            android:gravity = "left"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorSecondary"
+            android:ellipsize="end"/>
     </LinearLayout>
 </RelativeLayout>
 

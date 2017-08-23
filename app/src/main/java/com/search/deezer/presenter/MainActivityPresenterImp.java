@@ -1,12 +1,15 @@
 package com.search.deezer.presenter;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 
 import com.deezer.sdk.model.Track;
 import com.search.deezer.models.data.DeezerApplication;
 import com.search.deezer.models.data.RequestFactory;
+import com.search.deezer.models.service.MyplayerTask;
 import com.search.deezer.views.IMainActivityView;
 
 
@@ -32,6 +35,7 @@ public class MainActivityPresenterImp implements IMainActivityPresenter {
 
 
     }
+
 
     ArrayList<Track> mTracks=new ArrayList<>();
     @Override
@@ -62,5 +66,23 @@ public class MainActivityPresenterImp implements IMainActivityPresenter {
             }
         });
         return mTracks;
+    }
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+    public void playSong(Track mTrack){
+        // play song
+        Log.e("play song ","is called");
+
+        new MyplayerTask(mTrack,MainView).execute(mTrack.getPreviewUrl());
+
+         /*  mMusicPlayerView.resetPlayer();
+        mMusicPlayerView.preparePlayer(mTrack);
+       mMusicPlayerView.UpdatePlayer(mTrack);
+       */
+        ///////////////
+        //mp.setDataSource(db.getAllSongs().get(songIndex).getPath());
+//"http://e-cdn-preview-9.deezer.com/stream/995cb325bb07665855502248eb4ee104-3.mp3"
+
+
+
     }
 }

@@ -25,7 +25,24 @@
             android:layout_margin="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:ems = "3"
+            android:maxLines="1"
             android:layout_below="@+id/imageView"/>
+        <TextView
+            android:id="@+id/artist"
+            android:text="John Doe,"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:ems = "3"
+            android:maxLines="1"
+            android:layout_below="@+id/name"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorSecondary"/>
+
 
     </RelativeLayout>
 

@@ -12,4 +12,5 @@ import java.util.ArrayList;
 
 public interface IMainActivityPresenter {
 ArrayList<Track> SearchTrack(Context context, String  constraint);
+    void playSong(Track mTrack);
 }

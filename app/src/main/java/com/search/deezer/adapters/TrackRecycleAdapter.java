@@ -43,6 +43,7 @@ public class TrackRecycleAdapter  extends RecyclerView.Adapter<RecyclerView.View
 
 
     @Override
+    //i:viewtype
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
 
         View itemView;
@@ -106,7 +107,7 @@ public class TrackRecycleAdapter  extends RecyclerView.Adapter<RecyclerView.View
 
     @Override
     public int getItemCount() {
-        Log.e("Mtracklisk.size",mTrackList.size()+"");
+
         return mTrackList.size();
     }
 
@@ -123,7 +124,8 @@ public class TrackRecycleAdapter  extends RecyclerView.Adapter<RecyclerView.View
 
         }
         ((ItemViewHolder)holder).name.setText(model.getShortTitle());
-        ((ItemViewHolder)holder).artist.setText(model.getArtist().getName());
+       ((ItemViewHolder)holder).artist.setText(model.getArtist().getName());
+
 
     }
 

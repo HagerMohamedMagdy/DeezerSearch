@@ -20,4 +20,7 @@ public class Constants {
             "http://farm8.staticflickr.com/7311/27782539412_1e1cece561_m.jpg"};
 
 
+    public static  boolean INITIAL_STAGE = true;
+
+
 }

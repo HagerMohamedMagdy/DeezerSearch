@@ -10,4 +10,6 @@ public interface IMusicPlayerView {
     void UpdatePlayer(Track mTrack);
     void resetPlayer();
     void preparePlayer(Track mTrack);
+    void showLoading(boolean show);
+
 }
