@@ -22,5 +22,4 @@ public class Constants {
 
     public static  boolean INITIAL_STAGE = true;
 
-
 }

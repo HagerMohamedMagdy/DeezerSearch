@@ -30,7 +30,10 @@
         android:scrollbars="vertical"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="8dp"
+         android:paddingBottom="80dip"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+
     <include layout="@layout/content_main"/>
     <RelativeLayout
         android:id="@+id/mini_controller"
@@ -39,7 +42,7 @@
         android:layout_gravity="bottom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-android:visibility="gone"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="HardcodedText"
         android:background="@color/cardview_dark_background"
@@ -68,18 +71,18 @@ android:visibility="gone"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@id/album_art_nowplayingcard"
             android:orientation="vertical">
-<!--
-            <ProgressBar
-                android:id="@+id/m_song_progress_normal"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top"
-                android:maxHeight="5dp"
-                android:progress="30"
-                android:visibility="gone"
-                android:tag="tint_accent_color" />
-                -->
+            <!--
+                        <ProgressBar
+                            android:id="@+id/m_song_progress_normal"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top"
+                            android:maxHeight="5dp"
+                            android:progress="30"
+                            android:visibility="gone"
+                            android:tag="tint_accent_color" />
+                            -->
 
             <!-- Seek Bar -->
             <SeekBar

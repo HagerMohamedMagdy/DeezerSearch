@@ -24,7 +24,7 @@ public class RequestFactory {
      */
     public void newTrackRequest(String queryString, final RequestCallback callback){
         DeezerRequest request = DeezerRequestFactory.requestSearchTracks(queryString);
-      Log.e ("Service Patch ",request.getDeezerServicePath()+"para"+" "+request.getParams());
+      Log.e ("Service Path ",request.getDeezerServicePath()+"para"+" "+request.getParams());
         makeRequest(request, callback);
     }
 
@@ -62,9 +62,5 @@ public class RequestFactory {
          */
         void onRequestFailed(Exception exception);
     }
-    public void newArtistRequest(String queryString, final RequestCallback callback){
-        DeezerRequest request = DeezerRequestFactory.requestSearchArtists(queryString);
 
-        makeRequest(request, callback);
-    }
 }

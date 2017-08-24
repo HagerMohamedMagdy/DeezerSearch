@@ -1,5 +1,6 @@
 package com.search.deezer.views.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -26,24 +27,43 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.deezer.sdk.model.Permissions;
 import com.deezer.sdk.model.Track;
+import com.deezer.sdk.model.User;
+import com.deezer.sdk.network.connect.DeezerConnect;
+import com.deezer.sdk.network.connect.event.DialogListener;
+import com.deezer.sdk.network.request.DeezerRequest;
+import com.deezer.sdk.network.request.DeezerRequestFactory;
+import com.deezer.sdk.network.request.event.JsonRequestListener;
+import com.deezer.sdk.network.request.event.RequestListener;
+import com.google.gson.JsonObject;
 import com.search.deezer.R;
 import com.search.deezer.adapters.CustomItemClickListener;
+import com.search.deezer.adapters.RecyclerViewScrollListener;
 import com.search.deezer.adapters.TrackRecycleAdapter;
 import com.search.deezer.models.Constants;
 import com.search.deezer.models.ItemModel;
 import com.search.deezer.models.Utilities;
 import com.search.deezer.models.data.DeezerApplication;
 import com.search.deezer.models.service.ConnectivityReceiver;
+import com.search.deezer.models.service.retrofit.RetrofitServiceInterface;
 import com.search.deezer.presenter.IMainActivityPresenter;
 import com.search.deezer.presenter.MainActivityPresenterImp;
+import com.search.deezer.utils.Utility;
 import com.search.deezer.views.IMainActivityView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.search.deezer.R.id.albumArt;
 import static com.search.deezer.R.id.bPlay;
@@ -67,7 +87,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     @BindView(bPlay)
     ImageButton mplayBtn;
     private ArrayList<Track> mTrackList = new ArrayList<>();
-    ;
+
     @BindView(R.id.ConstraintLayout)
     ConstraintLayout coordinatorLayout;
     @BindView(R.id.mini_controller)
@@ -87,6 +107,8 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     private Handler mHandler = new Handler();
     @BindView(R.id.progressBar)
     ProgressBar Loading;
+    private Handler mLoadHandler;
+    String SearchQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,10 +138,27 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     }
 
     public void initView() {
+
         coordinatorLayout = (ConstraintLayout) findViewById(R.id
                 .ConstraintLayout);
+        mLoadHandler = new Handler();
+        mRecyclerView.addOnScrollListener(new RecyclerViewScrollListener() {
+            @Override
+            public void onScrollUp() {
 
+            }
 
+            @Override
+            public void onScrollDown() {
+
+            }
+
+            @Override
+            public void onLoadMore() {
+                loadMoreData();
+                //   Toast.makeText(DeezerApplication.getAppContext(), "loadMoreData", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -167,7 +206,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
 
                     }
-                   showMiniController(false);
+                    showMiniController(false);
                     mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
                     ViewType = 0;
 
@@ -209,8 +248,12 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
             boolean isConnected = ConnectivityReceiver.isConnected();
 
-            if (isConnected)
+            if (isConnected) {
                 mTrackList = mainPresenter.SearchTrack(DeezerApplication.getAppContext(), newText);
+                SearchQuery = newText;
+                Log.e("SearchQuery instate", SearchQuery);
+            }
+
             else
                 showSnack(isConnected);
 
@@ -246,7 +289,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
                     if (mini_controller.getVisibility() == View.VISIBLE) {
                         Constants.INITIAL_STAGE = true;
-                        Log.e("mini_controller", "Visisble");
+                        Log.e("mini_controller", "Visible");
 
 
                         if (mp != null) {
@@ -292,6 +335,8 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     @Override
     public void notifyError() {
         Log.e("Error", "No DTrack Found");
+        Toast.makeText(DeezerApplication.getAppContext(), "OOPs! Couldn't Load Data ", Toast.LENGTH_SHORT).show();
+
     }
 
 
@@ -372,13 +417,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
         try {
             Log.e("PREPARE Mini", mTrack.getPreviewUrl().toString() + "Found");
             mp.setDataSource(mTrack.getPreviewUrl());
-            //TODO
-//            mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//                @Override
-//                public void onPrepared(MediaPlayer mp) {
-//                    progressDialog=ProgressDialog.show(DeezerApplication.getAppContext(), "Loading", "Playing...");
-//                }
-//            });
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -403,6 +442,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     public void showLoading(boolean show) {
         Loading.setVisibility(show ? View.VISIBLE : View.GONE);
     }
+
 
     public void intMiniController(final Track mTrack) {
         utils = new Utilities();
@@ -460,11 +500,6 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
             Log.e("Update TimeTask", "called");
             long totalDuration = mp.getDuration();
             long currentDuration = mp.getCurrentPosition();
-            // Displaying total time
-            //  songTotalDuration.setText("" + utils.millisecondsToTimer(totalDuration));
-            //displaying cuurent time
-            ///   songCurrentDuration.setText("" + utils.millisecondsToTimer(currentDuration));
-
             //Updating Progress Bar
             int progress = (int) utils.getProgressPercentage(currentDuration, totalDuration);
             Log.d("Progress", "" + progress);
@@ -533,4 +568,38 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     protected void onPause() {
         super.onPause();
     }
+
+    ////Load more data
+    private void loadMoreData() {
+
+        mTrackAdapter.showLoading(true);
+        mTrackAdapter.notifyDataSetChanged();
+        Log.e("SearchQuery in more", SearchQuery);
+        mainPresenter.loadMoreTracks(SearchQuery, "25");
+
+
+    }
+
+    @Override
+    public void UpdateScrollData(final ArrayList<Track> newTrackList) {
+        mLoadHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mTrackList.size() == 0)
+                    Toast.makeText(DeezerApplication.getAppContext(), "No More Data Found !", Toast.LENGTH_SHORT).show();
+                else {
+                    mTrackList.addAll(0, newTrackList);
+                    Log.e("new Track Size", mTrackList.size() + "Found");
+                    mTrackAdapter.showLoading(false);
+                    mTrackAdapter.notifyDataSetChanged();
+                }
+            }
+        }, 1500);
+
+
+    }
+
+///////////////
+
+
 }
