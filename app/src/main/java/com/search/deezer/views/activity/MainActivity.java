@@ -258,7 +258,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView,Conn
 
                 } else {//grid
 
-                   
+
 
                     if (mini_controller.getVisibility() == View.VISIBLE) {
                         Constants.INITIAL_STAGE = true;
