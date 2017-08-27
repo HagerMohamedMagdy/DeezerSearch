@@ -6,9 +6,10 @@ package com.search.deezer.models.service.retrofit;
 
 public class ServerConfig {
 
-    public static String SERVER_URl = "http://api.deezer.com/search/track/";
+    public static String SERVER_URl = "http://api.deezer.com/";
     public static final String METHOD_GET = "get";
     public static final String METHOD_POST = "post";
     public static final String METHOD_GET_Q = "get_q";
-    public static final String SEARCH_MORE_TRACK = "rest";
+    public static final String SEARCH_MORE_TRACK = "search/track";
+    public static final String SEARCH_HISTORY = "search/track/history";
 }

@@ -2,6 +2,7 @@ package com.search.deezer.presenter;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +38,10 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static android.R.attr.data;
+import static android.R.attr.value;
+import static android.provider.Contacts.SettingsColumns.KEY;
+
 /**
  * Created by Hager.Magdy on 8/19/2017.
  */
@@ -64,6 +69,7 @@ public class MainActivityPresenterImp implements IMainActivityPresenter {
     public ArrayList<Track> SearchTrack(Context context, String constraint) {
         //implementation for search track list
         //law success update view law fail no tracks found message
+        Log.i("SearchTrack Func.","Called");
 
         DeezerApplication applicationContext = (DeezerApplication) context.getApplicationContext();
 
@@ -72,9 +78,9 @@ public class MainActivityPresenterImp implements IMainActivityPresenter {
             @Override
             public void onRequestSuccess(Object o) {
 
-                Log.e("request ", "Success");
+                Log.d("request ", "Success");
                 mTracks = (ArrayList<Track>) o;
-                Log.e("@@@", mTracks.size() + "Ff");
+                Log.d("mTracks.size", mTracks.size() + "Ff");
                 for (int i = 0; i < mTracks.size(); i++) {
                     //    Log.e("DTrack name",mTracks.get(i).getName());
                 }
@@ -95,7 +101,11 @@ public class MainActivityPresenterImp implements IMainActivityPresenter {
         // play song
         Log.e("play song ", "is called");
 
-        new MyplayerTask(mTrack, MainView).execute(mTrack.getPreviewUrl());
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB)
+            new MyplayerTask(mTrack, MainView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mTrack.getPreviewUrl());
+        else
+            new MyplayerTask(mTrack, MainView).execute( mTrack.getPreviewUrl());
 
 
 
@@ -103,10 +113,19 @@ public class MainActivityPresenterImp implements IMainActivityPresenter {
 
     @Override
     public void loadMoreTracks(String query, String index) {
-        Map<String, String> sOptions = new HashMap<String, String>();
-        sOptions.put("q", query);
-        sOptions.put("index", index);
-        RertofitServiceManger retrofit = new RertofitServiceManger(0, ServerConfig.SEARCH_MORE_TRACK, ServerConfig.METHOD_GET_Q, MainView, sOptions
+        Log.i("loadMoreTrack func.","called");
+        Map<String, String> mparams = new HashMap<String, String>();
+        mparams.put("q", query);
+        mparams.put("index", index);
+
+//log  params
+        for (String key : mparams.keySet()) {
+            Object value = mparams.get(key);
+            if (value != null) {
+                Log.d( "Parameter value= " ,key.toString()+":"+ value.toString());
+
+            }}
+        RertofitServiceManger retrofit = new RertofitServiceManger(0, ServerConfig.SEARCH_MORE_TRACK, ServerConfig.METHOD_GET_Q, MainView, mparams
                 , DeezerApplication.getAppContext());
         retrofit.makeRequest();
 

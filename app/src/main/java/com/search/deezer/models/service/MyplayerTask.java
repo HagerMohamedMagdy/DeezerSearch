@@ -49,7 +49,9 @@ public class MyplayerTask extends AsyncTask<String, String, String> {
     }
 
     public void onPreExecute() {
+
         if (mainActivityView == null) {
+
             mMusicPlayerView.showLoading(true);
         } else {
             mainActivityView.showLoading(true);
@@ -123,7 +125,7 @@ public class MyplayerTask extends AsyncTask<String, String, String> {
             mMusicPlayerView.resetPlayer();
             mMusicPlayerView.preparePlayer(mtrack);
         } else {
-            Log.e("Mini Controller", "backgroudn");
+            Log.e("Mini Controller", "background");
             mainActivityView.resetMiniPlayer();
             mainActivityView.prepareMiniPlayer(mtrack);
         }
@@ -148,6 +150,7 @@ public class MyplayerTask extends AsyncTask<String, String, String> {
         Constants.INITIAL_STAGE = false;
         // Dismiss the dialog after the Music file was downloaded
         if (mainActivityView == null) {
+
             mMusicPlayerView.showLoading(false);
             mMusicPlayerView.UpdatePlayer(mtrack);
         } else {

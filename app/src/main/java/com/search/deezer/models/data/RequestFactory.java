@@ -24,7 +24,7 @@ public class RequestFactory {
      */
     public void newTrackRequest(String queryString, final RequestCallback callback){
         DeezerRequest request = DeezerRequestFactory.requestSearchTracks(queryString);
-      Log.e ("Service Path ",request.getDeezerServicePath()+"para"+" "+request.getParams());
+      Log.e ("Service Path ",request.getDeezerServicePath()+" "+"param ="+" "+request.getParams());
         makeRequest(request, callback);
     }
 

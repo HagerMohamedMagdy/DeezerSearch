@@ -1,5 +1,6 @@
 package com.search.deezer.models.data;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
@@ -17,6 +18,7 @@ public class DeezerApplication extends Application {
     private static Application instance;
     private static DeezerApplication mIinstance;
     private static Context context;
+    private static Activity activity;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -25,8 +27,12 @@ public class DeezerApplication extends Application {
                 .build();
         mApiRequestFactory = new RequestFactory(deezerConnect);
         DeezerApplication.context = getApplicationContext();
+        DeezerApplication.activity = getActivity();
         instance=this;
         mIinstance=this;
+    }
+    public static Activity getActivity() {
+        return DeezerApplication.activity;
     }
     public RequestFactory getApiRequestFactory(){
         return mApiRequestFactory;
@@ -43,5 +49,12 @@ public class DeezerApplication extends Application {
 
     public void setConnectivityListener(ConnectivityReceiver.ConnectivityReceiverListener listener) {
         ConnectivityReceiver.connectivityReceiverListener = listener;
+    }
+    public static void setCurrentActivity(Activity currentActivity) {
+        activity = currentActivity;
+    }
+
+    public static Activity getCurrentActivity() {
+        return activity;
     }
 }

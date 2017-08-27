@@ -27,18 +27,24 @@ import com.search.deezer.adapters.TrackRecycleAdapter;
 import com.search.deezer.models.Constants;
 import com.search.deezer.models.Utilities;
 import com.search.deezer.models.data.DeezerApplication;
+import com.search.deezer.models.service.ConnectivityReceiver;
 import com.search.deezer.presenter.IMusicPlayerPresenter;
 import com.search.deezer.presenter.MusicPlayerPresenterImp;
+import com.search.deezer.utils.Utility;
 import com.search.deezer.views.IMusicPlayerView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static android.os.Looper.prepare;
+import static android.util.Log.e;
 
-public class MusicPlayerActivity extends Activity implements IMusicPlayerView, MediaPlayer.OnCompletionListener, SeekBar.OnSeekBarChangeListener {
+
+public class MusicPlayerActivity extends Activity implements IMusicPlayerView, ConnectivityReceiver.ConnectivityReceiverListener, MediaPlayer.OnCompletionListener, SeekBar.OnSeekBarChangeListener {
 
 
     @BindView(R.id.albumArt)
@@ -75,7 +81,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     String imageUrl;
     // Handler to update UI timer, progress bar etc,.
     private Handler mHandler = new Handler();
-   @BindView(R.id.progressBar)
+    @BindView(R.id.progressBar)
     ProgressBar Loading;
     private boolean playPause;
     private int seekForwardTime = 5000; // 5000 milliseconds
@@ -85,6 +91,13 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     private boolean isRepeat = false;
     IMusicPlayerPresenter mPlayerPresenter;
     private Utilities utils;
+    @BindView(R.id.parent_view)
+    RelativeLayout parent_view;
+    ArrayList<Track> mTrackList;
+    int trackPosition;
+    private boolean mCancel = false;
+    boolean prepared = false;
+    boolean cancel = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,28 +105,17 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
         setContentView(R.layout.activity_music_player);
         ButterKnife.bind(this);
         mTrack = getIntent().getParcelableExtra("mTrack");
-        Log.e("Recived track is", mTrack.getTitle());
+        e("Recived track is", mTrack.getTitle());
+        mTrackList = getIntent().getParcelableArrayListExtra("mTrackList");
+
+        trackPosition = getIntent().getIntExtra("mPosition", trackPosition);
+
         mPlayerPresenter = new MusicPlayerPresenterImp(this);
         initView();
     }
 
     public void initView() {
-        /*
-        bPlay = (ImageButton) findViewById(R.id.bPlay);
-        bForward = (ImageButton) findViewById(R.id.bForward);
-        bBackward = (ImageButton) findViewById(R.id.bBackward);
-        bNext = (ImageButton) findViewById(R.id.bNext);
-        bPrevious = (ImageButton) findViewById(R.id.bPrevious);
-        bPlaylist = (ImageButton) findViewById(R.id.bPlaylist);
-        bRepeat = (ImageButton) findViewById(R.id.bRepeat);
-        bShuffle = (ImageButton) findViewById(R.id.bShuffle);
-        songProgressBar = (SeekBar) findViewById(R.id.SongProgress);
-       songTitleLabel = (TextView) findViewById(R.id.SongTitle);
-        songCurrentDuration = (TextView) findViewById(R.id.currentDuration);
-        songTotalDuration = (TextView) findViewById(R.id.totalDuration);
-        albumArt = (ImageView) findViewById(R.id.albumArt);
-*/
-
+        e("Track in Initview", mTrack.getTitle());
         FadeIn = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.fadein);
         utils = new Utilities();
@@ -127,52 +129,32 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(DeezerApplication.getAppContext())
                     .load(imageUrl)
-                    // .centerCrop()
-//                    //for defaault image   .error()
+
                     .into(albumArt);
-//
-//
+
+
         } else {
-            Log.e("Empty image", "Found");
+            e("Empty image", "Found");
         }
-//
-//        albumArt.startAnimation(FadeIn);
-        //playactionBtn
+
+
         bPlay.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
-                //put in
-                // check for already playing
-                /*
-                if (mp.isPlaying()) {
-                    if (mp != null) {
-                        mp.pause();
-                        // Changing button image to play button
-                        bPlay.setImageResource(R.drawable.img_bplay);
-                    }
-                } else {
-                    // Resume song
-                    if (mp != null) {
 
-                        mp.start();
-                        Log.e("Start called", "herer");
-                        // mPlayerPresenter.playSong(mTrack);
-                        // Changing button image to pause button
-                        bPlay.setImageResource(R.drawable.img_bpause);
-                    }
-                }
-*/
-                ///////////////\
-                Log.e("playPause",playPause +" dd");
+
                 if (!playPause) {
 
                     bPlay.setImageResource(R.drawable.img_bpause);
-                    if (Constants.INITIAL_STAGE){
-                        Log.e("intial","called");
-                      mPlayerPresenter.playSong(mTrack);}
-                    else {
-                        Log.e("not intial","called");
+                    if (Constants.INITIAL_STAGE) {
+
+                        if (ConnectivityReceiver.isConnected())
+                            mPlayerPresenter.playSong(mTrack);
+                        else
+                            Utility.showSnack(false, parent_view);
+                    } else {
+
                         if (!mp.isPlaying())
                             mp.start();
                     }
@@ -184,6 +166,8 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
                     playPause = false;
                 }
             }
+
+
         });
         /**
          * Button Click event for Repeat button
@@ -193,12 +177,12 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
             public void onClick(View arg0) {
                 if (isRepeat) {
                     isRepeat = false;
-                    Toast.makeText(getApplicationContext(), "Repeat is OFF", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(DeezerApplication.getAppContext(), getResources().getString(R.string.repeat_of), Toast.LENGTH_SHORT).show();
                     bRepeat.setImageResource(R.drawable.img_btn_repeat);
                 } else {
                     //make repeat to true
                     isRepeat = true;
-                    Toast.makeText(getApplicationContext(), "Repeat is ON", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.repeat_on), Toast.LENGTH_SHORT).show();
                     //make shuffle to false
                     isShuffle = false;
                     bRepeat.setImageResource(R.drawable.img_btn_repeat_pressed);
@@ -211,12 +195,12 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
             public void onClick(View arg0) {
                 if (isShuffle) {
                     isShuffle = false;
-                    Toast.makeText(getApplicationContext(), "Shuffle is OFF", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.shuffle_of), Toast.LENGTH_SHORT).show();
                     bShuffle.setImageResource(R.drawable.img_btn_shuffle);
                 } else {
                     isShuffle = true;
                     isRepeat = false;
-                    Toast.makeText(getApplicationContext(), "Shuffle is ON", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.shuffle_on), Toast.LENGTH_SHORT).show();
                     bShuffle.setImageResource(R.drawable.img_btn_shuffle_pressed);
                     bRepeat.setImageResource(R.drawable.img_btn_repeat);
                 }
@@ -231,16 +215,21 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
             @Override
             public void onClick(View v) {
-                // TODO Auto-generated method stub
-                //get current song position
-                int currentPosition = mp.getCurrentPosition();
-                //check if seekForward time is less than song duration
-                if (currentPosition + seekForwardTime <= mp.getDuration()) {
-                    //forward Sing
-                    mp.seekTo(currentPosition + seekForwardTime);
+                Log.e("Forword", "presssed");
+                if (Loading.getVisibility() == View.VISIBLE) {
+                    Toast.makeText(DeezerApplication.getAppContext(), R.string.action_search, Toast.LENGTH_SHORT);
                 } else {
-                    // forward to end
-                    mp.seekTo(mp.getDuration());
+                    // TODO Auto-generated method stub
+                    //get current song position
+                    int currentPosition = mp.getCurrentPosition();
+                    //check if seekForward time is less than song duration
+                    if (currentPosition + seekForwardTime <= mp.getDuration()) {
+                        //forward Sing
+                        mp.seekTo(currentPosition + seekForwardTime);
+                    } else {
+                        // forward to end
+                        mp.seekTo(mp.getDuration());
+                    }
                 }
             }
         });
@@ -274,21 +263,32 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
             @Override
             public void onClick(View v) {
+                Log.e("next ", "iscalled");
+                showLoading(false);
+                playPause = false;
+
                 // TODO Auto-generated method stub
                 //get current song position
 
-                //check if next song is present
-                if (isRepeat) {
-                    //repeat is on play same song again
-                    mPlayerPresenter.playSong(mTrack);
-                } else if (isShuffle) {
-                    //shuffle is on--play random song
-                    Random rand = new Random();
 
-                    mPlayerPresenter.playSong(mTrack);
-                } else {
-
+                if (mp != null) {
+                    if (trackPosition < (mTrackList.size()) - 1) {
+                        Constants.INITIAL_STAGE = true;
+                        mHandler.removeCallbacks(mUpdateTimeTask);
+                        mp.reset();
+                        mp.release();
+                        mp = null;
+                        songProgressBar.setProgress(0);
+                        bPlay.setImageResource(R.drawable.img_bplay);
+                        mTrack = mTrackList.get(trackPosition + 1);
+                        trackPosition++;
+                        initView();
+                    } else {
+                        Toast.makeText(DeezerApplication.getAppContext(), R.string.last_track, Toast.LENGTH_SHORT).show();
+                    }
                 }
+
+
             }
         });
         /**
@@ -299,18 +299,25 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
             @Override
             public void onClick(View arg0) {
-                if (isRepeat) {
-                    //repeat is on play same song again
-                    mPlayerPresenter.playSong(mTrack);
-                } else if (isShuffle) {
-                    //shuffle is on--play random song
+                Log.e("previous ", "iscalled");
+                showLoading(false);
+                playPause = false;
 
-                    mPlayerPresenter.playSong(mTrack);
-                } else {
-                    if (currentSongIndex > 0) {
-                        //   mPlayerPresenter.playSong(mTrack - 1);
-                        currentSongIndex = currentSongIndex - 1;
+
+                if (mp != null) {
+                    if (trackPosition > 0) {
+                        Constants.INITIAL_STAGE = true;
+                        mHandler.removeCallbacks(mUpdateTimeTask);
+                        mp.reset();
+                        mp.release();
+                        mp = null;
+                        songProgressBar.setProgress(0);
+                        bPlay.setImageResource(R.drawable.img_bplay);
+                        mTrack = mTrackList.get(trackPosition - 1);
+                        trackPosition--;
+                        initView();
                     } else {
+                        Toast.makeText(DeezerApplication.getAppContext(), R.string.first_track, Toast.LENGTH_SHORT).show();
 
                     }
                 }
@@ -323,25 +330,33 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        Log.e("onCompletion", "onCompletion");
+        e("onCompletion", "onCompletion");
         // check for repeat on or off
-/*
-       // mPlayerPresenter.playSong(mTrack);
-        Constants.INITIAL_STAGE = true;
-        playPause=false;
-        bPlay.setImageResource(R.drawable.img_bplay);
-        mp.stop();
-        mp.reset();
-*/
-        if (mp != null) {
-            Constants.INITIAL_STAGE = true;
-            playPause=false;
-            bPlay.setImageResource(R.drawable.img_bplay);
-            mHandler.removeCallbacks(mUpdateTimeTask);
-            mp.stop();
+        if (isRepeat) {
+            if (mp != null) {
+                Log.e("Repeat same song", "found");
+                Constants.INITIAL_STAGE = true;
+                mHandler.removeCallbacks(mUpdateTimeTask);
+                mp.reset();
+                mp.release();
+                mp = null;
+                songProgressBar.setProgress(0);
+                bPlay.setImageResource(R.drawable.img_bplay);
 
-          //  mp.release();
-          //  mp = null;
+                initView();
+            }
+
+        } else {
+            if (mp != null) {
+                Constants.INITIAL_STAGE = true;
+                playPause = false;
+                bPlay.setImageResource(R.drawable.img_bplay);
+                mHandler.removeCallbacks(mUpdateTimeTask);
+                mp.stop();
+
+                //  mp.release();
+                //  mp = null;
+            }
         }
 
     }
@@ -387,12 +402,13 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
                 Glide.with(DeezerApplication.getAppContext())
                         .load(imageUrl)
                         .centerCrop()
+                        .error(R.drawable.ic_empty_music2)
                         //for defaault image   .error()
                         .into(albumArt);
 
 
             } else {
-                Log.e("Empty image", "Found");
+                e("Empty image", "Found");
             }
         }
         //  albumArt.startAnimation(FadeIn);
@@ -418,7 +434,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     private Runnable mUpdateTimeTask = new Runnable() {
         public void run() {
 
-            Log.e("Update TimeTask", "called");
+            //     Log.e("Update TimeTask", "called");
             long totalDuration = mp.getDuration();
             long currentDuration = mp.getCurrentPosition();
             // Displaying total time
@@ -438,6 +454,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
     @Override
     public void resetPlayer() {
+        Log.e("reset player", "called");
         mp.reset();
     }
 
@@ -445,7 +462,7 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     public void preparePlayer(Track mTrack) {
 
         try {
-            Log.e("PREPARE", mTrack.getPreviewUrl().toString() + "Found");
+            e("PREPARE", mTrack.getPreviewUrl().toString() + "Found");
             mp.setDataSource(mTrack.getPreviewUrl());
             //TODO
 //            mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -459,8 +476,11 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
             e.printStackTrace();
         }
         try {
+            Log.e("mp.prepare ", "found");
             mp.prepare();
+            mp.start();
         } catch (IOException e) {
+            Log.e("mp.prepare EXp", "found");
             e.printStackTrace();
         }
 //mp3 will be started after completion of preparing...
@@ -468,11 +488,26 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
 
             @Override
             public void onPrepared(MediaPlayer player) {
-                mp.start();
+                Log.e("onprepare", "finish");
+                prepared = true;
+                /*
+
+                if(mCancel){
+                    player.release();
+                    prepared = false;
+                    mCancel = false;
+                    //nullify your MediaPlayer reference
+                    mp = null;
+                }*/
+                Log.e("media player ", "start");
+
+                //  mp.start();
+
+
             }
 
         });
-      //  mp.start();
+        //  mp.start();
     }
 
     @Override
@@ -483,20 +518,75 @@ public class MusicPlayerActivity extends Activity implements IMusicPlayerView, M
     }
 
 
-
     @Override
     protected void onDestroy() {
+        Log.e("ondestroy ", "called");
         super.onDestroy();
+        Constants.INITIAL_STAGE = true;
+        //
         if (mp != null) {
             mHandler.removeCallbacks(mUpdateTimeTask);
-            mp.stop();
-
+            //  mp.stop(); crash while preparing
+            mp.reset();
             mp.release();
             mp = null;
         }
+
     }
-//    public void showLoading(boolean show) {
+
+    @Override
+    public void onNetworkConnectionChanged(boolean isConnected) {
+        Utility.showSnack(false, parent_view);
+    }
+
+    //    public void showLoading(boolean show) {
 //        Loading.setVisibility(show ? View.VISIBLE : View.GONE);
 //
 //    }
+    public void playNexPrev(Track mTrack) {
+        e("playPause", playPause + " dd");
+        if (!playPause) {
+
+            bPlay.setImageResource(R.drawable.img_bpause);
+            if (Constants.INITIAL_STAGE) {
+                e("intial", "called");
+                if (ConnectivityReceiver.isConnected())
+                    mPlayerPresenter.playSong(mTrack);
+                else
+                    Utility.showSnack(false, parent_view);
+            } else {
+                e("not intial", "called");
+                if (!mp.isPlaying())
+                    mp.start();
+            }
+            playPause = true;
+        } else {
+            bPlay.setImageResource(R.drawable.img_bplay);
+            if (mp.isPlaying())
+                mp.pause();
+            playPause = false;
+        }
+
+        FadeIn = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.fadein);
+        utils = new Utilities();
+        //media player
+        mp = new MediaPlayer();
+        //Listeners
+        songProgressBar.setOnSeekBarChangeListener(this);//Important
+        mp.setOnCompletionListener(this);
+        imageUrl = mTrack.getArtist().getPictureUrl();
+        songTitleLabel.setText(mTrack.getTitle());
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(DeezerApplication.getAppContext())
+                    .load(imageUrl)
+                    // .centerCrop()
+//                    //for defaault image   .error()
+                    .into(albumArt);
+//
+//
+        } else {
+            e("Empty image", "Found");
+        }
+    }
 }

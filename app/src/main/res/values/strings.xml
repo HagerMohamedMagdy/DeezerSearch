@@ -2,5 +2,16 @@
     <string name="app_name">DeezerSearch</string>
     <string name="action_settings">Switch View</string>
     <string name="action_search">Search</string>
+    <string name="search_history">Search History</string>
     <string name="deezer_app_id">249182</string>
+    <string name="no_data">NO DATA FOUND !</string>
+    <string name="last_track">No More Tracks!</string>
+    <string name="still_loading">Still Loading!</string>
+    <string name="first_track">No Previous Track!</string>
+    <string name="internet_error">Sorry! Not connected to internet</string>
+    <string name="internet_connect">Good! Connected to Internet</string>
+    <string name="repeat_on">Repeat is ON</string>
+    <string name="repeat_of">Repeat is OFF</string>
+    <string name="shuffle_on">Shuffle ON</string>
+    <string name="shuffle_of">Shuffle OFF</string>
 </resources>

@@ -1,5 +1,12 @@
 package com.search.deezer.models;
 
+import android.content.SharedPreferences;
+
+import com.search.deezer.models.data.DeezerApplication;
+
+import static android.content.Context.MODE_PRIVATE;
+import static com.search.deezer.models.Constants.MY_PREFS_NAME;
+
 /**
  * Created by Hager.Magdy on 8/21/2017.
  */
@@ -58,4 +65,24 @@ public class Utilities {
         return currentDuration*1000;
 
     }
+    /**
+     * Function to save data in shared prefrence
+     * @param key -
+     * @param value
+     * returns current duration in milliseconds
+     * */
+    public static  void saveData(String key,String value) {
+        SharedPreferences.Editor editor = DeezerApplication.getAppContext().getSharedPreferences(Constants.MY_PREFS_NAME, MODE_PRIVATE).edit();
+        editor.putString(key, value);
+        editor.commit();
+    }
+
+public static String getData(String key){
+    SharedPreferences prefs = DeezerApplication.getAppContext().getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
+
+        String value = prefs.getString(key, null);
+return  value;
+
+
+}
 }

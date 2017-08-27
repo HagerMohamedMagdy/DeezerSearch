@@ -18,6 +18,7 @@ import static com.deezer.sdk.network.request.DeezerRequest.GET;
 public interface RetrofitServiceInterface {
 
     @GET
-    Call<JsonObject> getMoreTracks(@Url String url, @QueryMap Map<String, String> options
+    Call<JsonObject> getTracks(@Url String url, @QueryMap Map<String, String> options
     );
+
 }

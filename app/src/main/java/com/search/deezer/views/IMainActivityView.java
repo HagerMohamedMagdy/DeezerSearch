@@ -9,7 +9,7 @@ import java.util.ArrayList;
  */
 
 public interface IMainActivityView {
-    void showEmptyView();
+
     void hideEmptyView();
     void notifyDataLoaded();
     void notifyError();

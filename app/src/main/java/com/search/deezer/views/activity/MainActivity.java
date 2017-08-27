@@ -1,13 +1,10 @@
 package com.search.deezer.views.activity;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,26 +24,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.deezer.sdk.model.Permissions;
 import com.deezer.sdk.model.Track;
-import com.deezer.sdk.model.User;
-import com.deezer.sdk.network.connect.DeezerConnect;
-import com.deezer.sdk.network.connect.event.DialogListener;
-import com.deezer.sdk.network.request.DeezerRequest;
-import com.deezer.sdk.network.request.DeezerRequestFactory;
-import com.deezer.sdk.network.request.event.JsonRequestListener;
-import com.deezer.sdk.network.request.event.RequestListener;
-import com.google.gson.JsonObject;
 import com.search.deezer.R;
 import com.search.deezer.adapters.CustomItemClickListener;
 import com.search.deezer.adapters.RecyclerViewScrollListener;
 import com.search.deezer.adapters.TrackRecycleAdapter;
 import com.search.deezer.models.Constants;
-import com.search.deezer.models.ItemModel;
 import com.search.deezer.models.Utilities;
 import com.search.deezer.models.data.DeezerApplication;
 import com.search.deezer.models.service.ConnectivityReceiver;
-import com.search.deezer.models.service.retrofit.RetrofitServiceInterface;
 import com.search.deezer.presenter.IMainActivityPresenter;
 import com.search.deezer.presenter.MainActivityPresenterImp;
 import com.search.deezer.utils.Utility;
@@ -54,26 +40,14 @@ import com.search.deezer.views.IMainActivityView;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-import static com.search.deezer.R.id.albumArt;
 import static com.search.deezer.R.id.bPlay;
-import static com.search.deezer.R.id.m_artist;
-import static com.search.deezer.R.id.m_title;
-import static com.search.deezer.R.id.mini_controller;
 
-public class MainActivity extends BaseActivity implements IMainActivityView, SearchView.OnQueryTextListener, ConnectivityReceiver.ConnectivityReceiverListener, MediaPlayer.OnCompletionListener, SeekBar.OnSeekBarChangeListener {
-    //String imageUrl[] = Constants.image;
-    String names[] = Constants.name;
+public class MainActivity extends BaseActivity implements IMainActivityView,ConnectivityReceiver.ConnectivityReceiverListener, SearchView.OnQueryTextListener,  MediaPlayer.OnCompletionListener, SeekBar.OnSeekBarChangeListener {
+
     boolean isSwitched;
 
     @BindView(R.id.my_recycler_view)
@@ -117,14 +91,15 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
         //    ButterKnife.bind(this);
         initView();
         mainPresenter = new MainActivityPresenterImp(this);
-        Log.e("On create ", "From MAin");
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         // register connection status listener
-        DeezerApplication.getInstance().setConnectivityListener(this);
+       DeezerApplication.getInstance().setConnectivityListener(this);
+        DeezerApplication.setCurrentActivity(this);
     }
 
     @Override
@@ -156,7 +131,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
             @Override
             public void onLoadMore() {
                 loadMoreData();
-                //   Toast.makeText(DeezerApplication.getAppContext(), "loadMoreData", Toast.LENGTH_SHORT).show();
+
             }
         });
     }
@@ -211,26 +186,21 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
                     ViewType = 0;
 
                 }
-
+        if(mTrackAdapter !=null)
                 mTrackAdapter.notifyDataSetChanged();
+        else {}
 
                 break;
+            case R.id.action_history:
+                Intent searchHistory= new Intent(MainActivity.this,SearchHistoryActivity.class);
+                startActivity(searchHistory);
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    ///For test
-    private List<ItemModel> getList() {
-        List<ItemModel> list = new ArrayList<>();
-//        for (int i = 0; i < imageUrl.length; i++) {
-//            ItemModel model = new ItemModel();
-//            model.setName(names[i]);
-//            model.setImagePath(imageUrl[i]);
-//            list.add(model);
-//        }
-        return list;
-    }
 
 
     @Override
@@ -251,22 +221,18 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
             if (isConnected) {
                 mTrackList = mainPresenter.SearchTrack(DeezerApplication.getAppContext(), newText);
                 SearchQuery = newText;
-                Log.e("SearchQuery instate", SearchQuery);
+
             }
 
             else
-                showSnack(isConnected);
+                Utility.showSnack(isConnected,coordinatorLayout);
 
 
             return true;
         }
     }
 
-    @Override
-    public void showEmptyView() {
-        mRecyclerView.setVisibility(View.GONE);
-        mContainerLayout.setVisibility(View.VISIBLE);
-    }
+
 
     @Override
     public void hideEmptyView() {
@@ -276,27 +242,36 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
     @Override
     public void notifyDataLoaded() {
+        Log.e("notifyDataLoaded","is called");
+
         mTrackAdapter = new TrackRecycleAdapter(DeezerApplication.getAppContext(), mTrackList, new CustomItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
                 if (ViewType == 0) {//list
                     Intent playSong = new Intent(v.getContext(), MusicPlayerActivity.class);
                     playSong.putExtra("mTrack", mTrackList.get(position));
+                    playSong.putExtra("mPosition", position);
+                    playSong.putExtra("mTrackList", mTrackList);
                     v.getContext().startActivity(playSong);
+
+
+
                 } else {//grid
 
-                    Toast.makeText(DeezerApplication.getAppContext(), "Gride is clicked", Toast.LENGTH_SHORT).show();
+                   
 
                     if (mini_controller.getVisibility() == View.VISIBLE) {
                         Constants.INITIAL_STAGE = true;
                         Log.e("mini_controller", "Visible");
-
+                        showLoading(false);
+                        playPause = false;
 
                         if (mp != null) {
                             mHandler.removeCallbacks(mUpdateTimeTask);
-                            mp.stop();
-
+                         //   mp.stop();
+                            mp.reset();
                             mp.release();
+
                             mp = null;
                             m_seek_bar.setProgress(0);
                             mplayBtn.setImageResource(R.drawable.img_bplay);
@@ -327,7 +302,7 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
         mRecyclerView.setAdapter(mTrackAdapter);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        mTrackAdapter.notifyDataSetChanged();
+       // mTrackAdapter.notifyDataSetChanged();
 
 
     }
@@ -340,30 +315,11 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     }
 
 
-    // Showing the status in Snackbar
-    private void showSnack(boolean isConnected) {
-        String message;
-        int color;
-        if (isConnected) {
-            message = "Good! Connected to Internet";
-            color = Color.WHITE;
-        } else {
-            message = "Sorry! Not connected to internet";
-            color = Color.RED;
-        }
 
-        Snackbar snackbar = Snackbar
-                .make(coordinatorLayout, message, Snackbar.LENGTH_LONG);
-
-        View sbView = snackbar.getView();
-        TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-        textView.setTextColor(color);
-        snackbar.show();
-    }
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
-        showSnack(isConnected);
+      Utility.showSnack(isConnected,coordinatorLayout);
     }
 
     @Override
@@ -424,6 +380,8 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
         }
         try {
             mp.prepare();
+
+            mp.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -432,7 +390,8 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
             @Override
             public void onPrepared(MediaPlayer player) {
-                mp.start();
+
+                //mp.start();
             }
 
         });
@@ -497,12 +456,12 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
     private Runnable mUpdateTimeTask = new Runnable() {
         public void run() {
 
-            Log.e("Update TimeTask", "called");
+
             long totalDuration = mp.getDuration();
             long currentDuration = mp.getCurrentPosition();
             //Updating Progress Bar
             int progress = (int) utils.getProgressPercentage(currentDuration, totalDuration);
-            Log.d("Progress", "" + progress);
+
             m_seek_bar.setProgress(progress);
             // Running this thread after 100 milliseconds
             mHandler.postDelayed(this, 100);
@@ -554,10 +513,11 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
     @Override
     protected void onDestroy() {
+        Log.e("destroy","called");
         super.onDestroy();
         if (mp != null) {
             mHandler.removeCallbacks(mUpdateTimeTask);
-            mp.stop();
+            mp.reset();
 
             mp.release();
             mp = null;
@@ -574,7 +534,6 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
 
         mTrackAdapter.showLoading(true);
         mTrackAdapter.notifyDataSetChanged();
-        Log.e("SearchQuery in more", SearchQuery);
         mainPresenter.loadMoreTracks(SearchQuery, "25");
 
 
@@ -585,9 +544,10 @@ public class MainActivity extends BaseActivity implements IMainActivityView, Sea
         mLoadHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mTrackList.size() == 0)
+                if (mTrackList.size() == 0) {
+                    Log.e(" no data", "found");
                     Toast.makeText(DeezerApplication.getAppContext(), "No More Data Found !", Toast.LENGTH_SHORT).show();
-                else {
+                }  else {
                     mTrackList.addAll(0, newTrackList);
                     Log.e("new Track Size", mTrackList.size() + "Found");
                     mTrackAdapter.showLoading(false);

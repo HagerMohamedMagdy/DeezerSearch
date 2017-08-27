@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_view"
+    android:layout_width="match_parent"
+android:background="@color/white"
+    android:layout_height="match_parent"
+    tools:context="com.search.deezer.views.activity.SearchHistoryActivity">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:padding="10dip"
+        android:id="@+id/history_linear"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/track_ed"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="@drawable/gray_border"
+            android:layout_marginRight="5dip"
+            android:hint="track name"
+            android:paddingLeft="10dip" />
+
+        <Button
+            android:id="@+id/history_btn"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:textColor="@color/white"
+            android:background="@drawable/border"
+            android:text="View History" />
+
+
+    </LinearLayout>
+<TextView
+    android:id="@+id/no_data_tv"
+    android:layout_width="match_parent"
+    android:text="@string/no_data"
+    android:visibility="gone"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+
+    android:layout_below="@+id/history_recycler_view"
+
+ />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/history_recycler_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/history_linear"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="8dp"
+        android:paddingBottom="10dip"
+        android:scrollbars="vertical"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+</RelativeLayout>

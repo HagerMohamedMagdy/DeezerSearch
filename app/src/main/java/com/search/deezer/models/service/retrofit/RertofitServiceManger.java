@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.search.deezer.models.data.ModelParser;
 import com.search.deezer.utils.Utility;
 import com.search.deezer.views.IMainActivityView;
+import com.search.deezer.views.ISearchHistoryView;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -34,8 +35,10 @@ public class RertofitServiceManger {
     private Map<String, String> parameters;
     private Context context;
     private IMainActivityView MainView;
+    ISearchHistoryView searchView;
     private Retrofit retrofit;
     private Call<JsonObject> call;
+    private String Query;
     //For Normal Post Requests /OR GET Request
     public RertofitServiceManger(int requestId, String uri,
                                  String methodType, IMainActivityView MainView,
@@ -47,6 +50,30 @@ public class RertofitServiceManger {
         this.requestId = requestId;
         this.parameters = parameters;
 
+        this.context = context;
+    }
+    public RertofitServiceManger(int requestId, String uri,
+                                 String methodType, ISearchHistoryView searchView,
+                                 Map<String, String> parameters,
+                                 Context context) {
+        this.searchView = searchView;
+        this.uri = uri;
+        this.methodType = methodType;
+        this.requestId = requestId;
+        this.parameters = parameters;
+
+        this.context = context;
+    }
+    public RertofitServiceManger(int requestId, String uri,
+                                 String methodType, ISearchHistoryView searchView,
+                                 Map<String, String> parameters,
+                                 Context context,String Query ) {
+        this.searchView = searchView;
+        this.uri = uri;
+        this.methodType = methodType;
+        this.requestId = requestId;
+        this.parameters = parameters;
+this.Query=Query;
         this.context = context;
     }
     public void makeRequest() {
@@ -74,7 +101,7 @@ public class RertofitServiceManger {
 
         }else if(methodType.equalsIgnoreCase(ServerConfig.METHOD_GET_Q)){
             //this methode takes query params only
-            call = mRetrofitService.getMoreTracks(uri,parameters);
+            call = mRetrofitService.getTracks(uri,parameters);
         }
         call.enqueue(new Callback<JsonObject>() {
             @Override
@@ -82,19 +109,26 @@ public class RertofitServiceManger {
 
 
                 if(response.isSuccessful()){
-
-                    if (Utility.isProgressDialogShowing()) {
-                        Utility.removeProgressDialog();
-
-
-                    }
-                    MainView.UpdateScrollData( ModelParser.parseJasonTrack(uri,response));
                     Log.e("MyResponse Body", response.body().toString() + "," + response.code() + "");
+                    if (Utility.isProgressDialogShowing()) {
+
+
+                    }if(searchView==null){
+                        //more data
+                    MainView.UpdateScrollData( ModelParser.parseJasonTrack(uri,response,null));
+
+                    }else {
+                        //search history
+
+                        searchView.UpdateSearchList( ModelParser.parseJasonTrack(uri,response,Query));
+                    }
                 }else {
                     if (Utility.isProgressDialogShowing()) {
                         Utility.removeProgressDialog();}
+                    if(searchView==null)
                     MainView.notifyError();
-
+                    else
+                        searchView.notifyError();
 
                 }
 
@@ -102,7 +136,11 @@ public class RertofitServiceManger {
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                MainView.notifyError();
+                if(searchView==null)
+                    MainView.notifyError();
+                else
+                    searchView.notifyError();
+
             }
         });
     }

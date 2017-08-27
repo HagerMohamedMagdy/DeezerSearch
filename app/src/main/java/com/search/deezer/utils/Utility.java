@@ -2,6 +2,13 @@ package com.search.deezer.utils;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.support.design.widget.Snackbar;
+import android.view.View;
+import android.widget.TextView;
+
+import com.search.deezer.R;
+import com.search.deezer.models.data.DeezerApplication;
 
 /**
  * Created by Hager.Magdy on 8/16/2017.
@@ -49,5 +56,31 @@ public class Utility {
             e.printStackTrace();
         }
     }
+public static boolean isEmptyString(String text){
+    if (text != null && !text.isEmpty() && !text.equals("null"))
+    return  false;
+    else
+        return true;
 
+}
+    // Showing the status in Snackbar
+    public static void showSnack(boolean isConnected, View view) {
+        String message;
+        int color;
+        if (isConnected) {
+            message = DeezerApplication.getAppContext().getResources().getString(R.string.internet_connect);
+            color = Color.WHITE;
+        } else {
+            message = DeezerApplication.getAppContext().getResources().getString(R.string.internet_error) ;
+            color = Color.RED;
+        }
+
+        Snackbar snackbar = Snackbar
+                .make(view, message, Snackbar.LENGTH_LONG);
+
+        View sbView = snackbar.getView();
+        TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(color);
+        snackbar.show();
+    }
 }

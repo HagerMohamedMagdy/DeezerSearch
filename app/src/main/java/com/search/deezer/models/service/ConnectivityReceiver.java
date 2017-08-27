@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.search.deezer.models.data.DeezerApplication;
 
@@ -29,7 +31,11 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 
         if (connectivityReceiverListener != null) {
             connectivityReceiverListener.onNetworkConnectionChanged(isConnected);
-        }
+
+
+
+     }
+
     }
     public static boolean isConnected() {
         ConnectivityManager

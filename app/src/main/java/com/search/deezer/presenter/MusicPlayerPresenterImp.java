@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.DeadObjectException;
 import android.util.Log;
@@ -27,7 +28,7 @@ import static com.search.deezer.R.id.bPlay;
 
 public class MusicPlayerPresenterImp implements IMusicPlayerPresenter {
   IMusicPlayerView mMusicPlayerView;
-    MusicPlayerActivity mactivity;
+
 
 
     public MusicPlayerPresenterImp(IMusicPlayerView mMusicPlayerView) {
@@ -40,17 +41,11 @@ public class MusicPlayerPresenterImp implements IMusicPlayerPresenter {
     @TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
     public void playSong(Track mTrack){
         // play song
-Log.e("play song ","is called");
-
-        new MyplayerTask(mTrack,mMusicPlayerView).execute(mTrack.getPreviewUrl());
-
-         /*  mMusicPlayerView.resetPlayer();
-        mMusicPlayerView.preparePlayer(mTrack);
-       mMusicPlayerView.UpdatePlayer(mTrack);
-       */
-        ///////////////
-            //mp.setDataSource(db.getAllSongs().get(songIndex).getPath());
-//"http://e-cdn-preview-9.deezer.com/stream/995cb325bb07665855502248eb4ee104-3.mp3"
+      Log.e("play song ","is called");
+      if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB)
+        new MyplayerTask(mTrack,mMusicPlayerView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mTrack.getPreviewUrl());
+      else
+        new MyplayerTask(mTrack,mMusicPlayerView).execute( mTrack.getPreviewUrl());
 
 
 
